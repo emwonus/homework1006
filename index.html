@@ -1,91 +1,160 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K-MONSTAR 銷量與庫存監控</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f8f9fa; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h1 { color: #ff4b4b; font-size: 24px; margin-bottom: 5px; }
-        .subtitle { color: #666; font-size: 14px; margin-bottom: 25px; }
-        .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
-        .tab { padding: 10px 20px; cursor: pointer; font-weight: bold; color: #666; border-bottom: 2px solid transparent; margin-bottom: -2px; }
-        .tab.active { color: #ff4b4b; border-bottom-color: #ff4b4b; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
-        input[type="text"] { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 15px; font-size: 14px; }
-        button { background-color: #ff4b4b; color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; }
-        button:hover { background-color: #e03e3e; }
-        .result-box { margin-top: 20px; padding: 15px; background: #f1f3f5; border-radius: 6px; display: none; }
-        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; background: #2b8a3e; margin-bottom: 10px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>⭐ K-MONSTAR 銷量與庫存監控</h1>
-        <div class="subtitle">即時追蹤商品頁面庫存與銷售數據</div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seoul Focus & Vibe — 韓語沉浸學習 Web App</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab(0)">🔥 進行中活動監控</div>
-            <div class="tab" onclick="switchTab(1)">📜 查詢已結束/任意活動</div>
-        </div>
+  <style>
+    :root {
+      /* Light Mode Palette (Morandi Pastel) */
+      --bg-gradient: linear-gradient(135deg, #f5f3f8 0%, #e8e3f0 100%);
+      --card-bg: rgba(255, 255, 255, 0.75);
+      --card-border: rgba(255, 255, 255, 0.6);
+      --text-main: #332d41;
+      --text-sub: #786f8a;
+      --accent-purple: #8b79b8;
+      --accent-purple-hover: #7563a3;
+      --accent-rose: #e09fbe;
+      --accent-mint: #88c0a8;
+      --shadow-sm: 0 8px 32px 0 rgba(115, 102, 142, 0.08);
+      --shadow-md: 0 12px 40px 0 rgba(115, 102, 142, 0.15);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+    }
 
-        <!-- 標籤一 -->
-        <div class="tab-content active" id="content-0">
-            <label>輸入商品網址 (URL):</label>
-            <input type="text" id="eventUrl" placeholder="https://example.com/product/..." value="https://k-monstar.com/product/sample">
-            <button onclick="startMonitor()">開始即時監控</button>
+    [data-theme="dark"] {
+      /* Dark Mode Palette */
+      --bg-gradient: linear-gradient(135deg, #181524 0%, #0d0b14 100%);
+      --card-bg: rgba(30, 26, 43, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f0ecf7;
+      --text-sub: #a197b8;
+      --accent-purple: #9d8ec4;
+      --accent-purple-hover: #b1a3d6;
+      --accent-rose: #eb95b8;
+      --accent-mint: #70be9a;
+      --shadow-sm: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --shadow-md: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+    }
 
-            <div class="result-box" id="resultBox">
-                <div class="status-badge" id="statusBadge">販售中</div>
-                <p><strong>商品名稱：</strong> <span id="prodName">K-MONSTAR 官方應援周邊</span></p>
-                <p><strong>目前剩餘庫存：</strong> <span id="stockQty" style="color: #ff4b4b; font-weight: bold;">42</span> 件</p>
-                <p><strong>最後更新時間：</strong> <span id="updateTime">-</span></p>
-            </div>
-        </div>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
 
-        <!-- 標籤二 -->
-        <div class="tab-content" id="content-1">
-            <label>輸入歷史活動網址查詢:</label>
-            <input type="text" id="historyUrl" placeholder="請輸入已結束的活動網址...">
-            <button onclick="queryHistory()">查詢歷史紀錄</button>
-            <div class="result-box" id="historyResult" style="display: block; margin-top: 20px;">
-                <p style="color: #666; text-align: center; margin: 0;">尚無查詢紀錄，請輸入網址開始。</p>
-            </div>
-        </div>
-    </div>
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans KR', sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
 
-    <script>
-        function switchTab(index) {
-            const tabs = document.querySelectorAll('.tab');
-            const contents = document.querySelectorAll('.tab-content');
-            tabs.forEach((t, i) => {
-                t.classList.toggle('active', i === index);
-                contents[i].classList.toggle('active', i === index);
-            });
-        }
+    /* Glassmorphism Container */
+    .app-container {
+      width: 100%;
+      max-width: 960px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 32px;
+      margin-top: 16px;
+    }
 
-        function startMonitor() {
-            const url = document.getElementById('eventUrl').value;
-            if(!url) {
-                alert('請先輸入網址！');
-                return;
-            }
-            const box = document.getElementById('resultBox');
-            box.style.display = 'block';
-            
-            // 模擬即時抓取數值
-            document.getElementById('stockQty').innerText = Math.floor(Math.random() * 50) + 1;
-            const now = new Date();
-            document.getElementById('updateTime').innerText = now.toLocaleTimeString();
-        }
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+    }
 
-        function queryHistory() {
-            const historyResult = document.getElementById('historyResult');
-            historyResult.innerHTML = '<p style="color: #2b8a3e; font-weight: bold; margin: 0;">✅ 歷史數據讀取成功：此活動已於日前結算，總計售出 128 件。</p>';
-        }
-    </script>
-</body>
-</html>
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title i {
+      font-size: 1.8rem;
+      color: var(--accent-purple);
+    }
+
+    .brand-title h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title span {
+      font-size: 0.85rem;
+      color: var(--accent-purple);
+      background: rgba(139, 121, 184, 0.15);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .theme-toggle-btn {
+      background: rgba(139, 121, 184, 0.12);
+      border: none;
+      color: var(--text-main);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .theme-toggle-btn:hover {
+      background: rgba(139, 121, 184, 0.25);
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.04);
+      padding: 6px;
+      border-radius: 16px;
+      margin-bottom: 32px;
+    }
+
+    [data-theme="dark"] .nav-tabs {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--text-sub);
+      font-weight:
